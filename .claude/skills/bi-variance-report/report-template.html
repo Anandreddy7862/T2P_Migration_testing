@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tableau to Power BI Variance Report</title>
+<!--
+  TEMPLATE NOTES (delete this comment in the generated report)
+
+  Fill every {{PLACEHOLDER}}. Keep the CSS as-is: it is inline on purpose so the
+  report opens from disk with no network access.
+
+  Row classes drive the colour: <tr class="pass|fail">
+  Badge classes are the same two names.
+  Wide tables are already wrapped in .scroll so the page body never scrolls
+  sideways.
+-->
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1a1d21; --muted: #5c6570; --line: #e3e7ec;
+    --card: #f7f9fb; --head: #eef2f6;
+    --pass: #1a7f4b; --pass-bg: #e9f7ef;
+    --fail: #b3261e; --fail-bg: #fdeceb;
+    --tableau: #1f4e79; --powerbi: #b8860b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #16191d; --fg: #e6e9ed; --muted: #9aa4b0; --line: #2c3238;
+      --card: #1d2126; --head: #232830;
+      --pass: #4ec98a; --pass-bg: #14301f;
+      --fail: #ff8b82; --fail-bg: #3a1a17;
+      --tableau: #7fb3e0; --powerbi: #e8c46a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 32px 24px 64px;
+    background: var(--bg); color: var(--fg);
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  h2 { font-size: 19px; margin: 40px 0 12px; padding-bottom: 6px; border-bottom: 2px solid var(--line); }
+  h3 { font-size: 15px; margin: 24px 0 8px; font-weight: 600; }
+  .sub { color: var(--muted); margin: 0 0 24px; font-size: 13px; }
+  .cards { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0 8px; }
+  .card {
+    flex: 1 1 130px; background: var(--card); border: 1px solid var(--line);
+    border-radius: 8px; padding: 12px 14px;
+  }
+  .card .n { font-size: 24px; font-weight: 650; letter-spacing: -0.02em; }
+  .card .l { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-top: 2px; }
+  .meta { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin: 16px 0; font-size: 13px; }
+  .meta div { margin: 3px 0; }
+  .meta b { font-weight: 600; }
+  .scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; margin: 10px 0 6px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  thead th { background: var(--head); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); position: sticky; top: 0; }
+  tbody tr:last-child td { border-bottom: none; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+  th.num { text-align: right; }
+  .t-val { color: var(--tableau); font-weight: 600; }
+  .p-val { color: var(--powerbi); font-weight: 600; }
+  tr.pass td:first-child { box-shadow: inset 3px 0 var(--pass); }
+  tr.fail td:first-child { box-shadow: inset 3px 0 var(--fail); }
+  tr.fail td.num.var { color: var(--fail); font-weight: 700; }
+  .badge { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; }
+  .badge.pass { color: var(--pass); background: var(--pass-bg); }
+  .badge.fail { color: var(--fail); background: var(--fail-bg); }
+  .visual { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin: 14px 0; background: var(--card); }
+  .visual > .head { display: flex; flex-wrap: wrap; gap: 10px; align-items: baseline; justify-content: space-between; }
+  .visual .name { font-size: 15px; font-weight: 650; }
+  .visual .stats { color: var(--muted); font-size: 12px; }
+  .note { border-left: 3px solid var(--fail); background: var(--fail-bg); padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 10px 0; font-size: 13.5px; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; background: var(--head); padding: 1px 5px; border-radius: 4px; }
+  footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Tableau to Power BI variance report</h1>
+  <p class="sub">Data validation for the migrated dashboards. Tableau is the baseline; Power BI is the platform under validation.</p>
+
+  <div class="cards">
+    <div class="card"><div class="n">{{DASHBOARDS}}</div><div class="l">Dashboards</div></div>
+    <div class="card"><div class="n">{{VISUALS}}</div><div class="l">Visuals validated</div></div>
+    <div class="card"><div class="n">{{CELLS_COMPARED}}</div><div class="l">Values compared</div></div>
+    <div class="card"><div class="n">{{N_PASS}}</div><div class="l">Pass</div></div>
+    <div class="card"><div class="n">{{N_FAIL}}</div><div class="l">Fail</div></div>
+  </div>
+
+  <div class="meta">
+    <div><b>Generated</b> {{TIMESTAMP}}</div>
+    <div><b>Sources</b> <code>downloads/tableau</code> vs <code>downloads/powerbi</code> (newest file {{DATA_TIMESTAMP}})</div>
+    <div><b>Variance</b> <code>((powerbi - tableau) / abs(tableau)) * 100</code></div>
+    <div><b>Threshold</b> PASS at or under 0.5% variance &middot; FAIL above it, or when a value exists on one platform only</div>
+    <div><b>Verdict</b> {{VERDICT}}</div>
+  </div>
+
+  <!-- ================= per-visual detail: repeat per dashboard ================= -->
+  <h2>{{DASHBOARD_NAME}}</h2>
+
+  <!-- repeat this .visual block per paired visual on the dashboard -->
+  <div class="visual">
+    <div class="head">
+      <span class="name">{{VISUAL_NAME}} <span class="badge {{VISUAL_STATUS_CLASS}}">{{VISUAL_STATUS}}</span></span>
+      <span class="stats">{{N_KEYS}} keys &middot; {{N_MEASURES}} measures &middot; {{N_CELLS}} values &middot; Tableau {{T_ROWS}} rows vs Power BI {{P_ROWS}} rows &middot; max variance {{MAX_VAR}}</span>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>{{DIMENSION}}</th>
+            <th>Measure</th>
+            <th class="num">Tableau</th>
+            <th class="num">Power BI</th>
+            <th class="num">Variance %</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- one row per (key, measure); class = pass | fail -->
+          <tr class="{{ROW_CLASS}}">
+            <td>{{KEY}}</td>
+            <td>{{MEASURE}}</td>
+            <td class="num t-val">{{TABLEAU_VALUE}}</td>
+            <td class="num p-val">{{POWERBI_VALUE}}</td>
+            <td class="num var">{{VARIANCE}}</td>
+            <td><span class="badge {{ROW_CLASS}}">{{ROW_STATUS}}</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ================= unpaired ================= -->
+  <h2>Unpaired visuals</h2>
+  <p class="sub">Present on one platform only, so the data cannot be validated. Counted as a failure.</p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Dashboard</th><th>Visual</th><th>Present on</th><th>Missing on</th></tr></thead>
+      <tbody>
+        <tr class="fail"><td>{{U_DASHBOARD}}</td><td>{{U_VISUAL}}</td><td>{{U_PRESENT}}</td><td>{{U_MISSING}}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ================= pairing audit ================= -->
+  <h2>Pairing audit</h2>
+  <p class="sub">Which Tableau file was compared against which Power BI file. The <code>index_</code> prefix is stripped before matching, because a visual's canvas position does not correspond across platforms.</p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Dashboard</th><th>Tableau file</th><th>Power BI file</th><th>Matched on</th></tr></thead>
+      <tbody>
+        <tr><td>{{A_DASHBOARD}}</td><td><code>{{A_TABLEAU_FILE}}</code></td><td><code>{{A_POWERBI_FILE}}</code></td><td>{{A_REASON}}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    Generated by the <code>bi-variance-report</code> skill. Machine-readable findings: <code>reports/variance/variance.json</code>.
+  </footer>
+
+</div>
+</body>
+</html>

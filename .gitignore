@@ -1,0 +1,15 @@
+node_modules/
+.env
+.env.*
+!.env.example
+auth/
+downloads/
+artifacts/
+test-results/
+playwright-report/
+blob-report/
+*.log
+.DS_Store
+.tmp/
+scripts/*.log
+.playwright-mcp/

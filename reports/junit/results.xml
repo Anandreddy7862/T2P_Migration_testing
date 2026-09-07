@@ -1,0 +1,20 @@
+<testsuites id="" name="" tests="2" failures="0" skipped="0" errors="0" time="127.966129">
+<testsuite name="tests\tableau\extract-visual-data.spec.ts" timestamp="2026-09-07T07:56:53.422Z" hostname="tableau" tests="1" failures="0" skipped="0" time="102.584" errors="0">
+<testcase name="Tableau visual data extraction › should download the data behind every visual on every dashboard" classname="tests\tableau\extract-visual-data.spec.ts" time="102.584">
+<system-out>
+<![CDATA[cleared downloads/tableau (3 entries removed)
+dashboards (3): Enrollment Overview | Enrollment Overview (2) | Member Enrollment & Coverage Analytics
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="global-setup\tableau-auth.setup.ts" timestamp="2026-09-07T07:56:53.422Z" hostname="tableau-auth-setup" tests="1" failures="0" skipped="0" time="21.835" errors="0">
+<testcase name="should establish a Tableau session" classname="global-setup\tableau-auth.setup.ts" time="21.835">
+<system-out>
+<![CDATA[Tableau session established
+Tableau sign-in confirmed by the viz-viewer toolbar
+]]>
+</system-out>
+</testcase>
+</testsuite>
+</testsuites>

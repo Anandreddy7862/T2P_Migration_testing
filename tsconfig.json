@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "lib": ["ES2022", "DOM"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@common-utils/*": ["src/common-utils/*"],
+      "@bi-migration/*": ["src/apps/bi-migration/*"],
+      "@fixtures": ["src/apps/bi-migration/ui/app-utils/fixtures/index"],
+      "@pages/*": ["src/apps/bi-migration/ui/app-utils/pages/*"],
+      "@modules/*": ["src/apps/bi-migration/ui/app-utils/modules/*"],
+      "@constants/*": ["src/apps/bi-migration/ui/app-utils/constants/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "scripts/**/*.ts", "playwright.config.ts"]
+}

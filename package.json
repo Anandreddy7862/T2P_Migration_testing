@@ -1,0 +1,29 @@
+{
+  "name": "t2p-migration-testing",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright + TypeScript sign-in framework for Tableau Cloud and Power BI (session capture and reuse)",
+  "scripts": {
+    "postinstall": "playwright install chromium",
+    "test:auth": "playwright test --project=tableau-auth-setup --project=powerbi-auth-setup",
+    "test:auth:tableau": "playwright test --project=tableau-auth-setup",
+    "test:auth:powerbi": "playwright test --project=powerbi-auth-setup",
+    "test:auth:powerbi:manual": "playwright test --project=powerbi-auth-manual",
+    "report:playwright": "playwright show-report playwright-report",
+    "tsc:check": "tsc --noEmit",
+    "clean": "rimraf playwright-report reports test-results auth",
+    "test:tableau": "playwright test --project=tableau",
+    "test:powerbi": "playwright test --project=powerbi",
+    "test:extract": "playwright test --project=tableau --project=powerbi",
+    "compare": "claude -p /bi-variance-report --permission-mode acceptEdits --allowedTools Read,Write,Edit,Bash,Glob,Grep",
+    "validate": "npm run test:extract && npm run compare",
+    "report:variance:open": "node -e \"const p=require('path').resolve('reports/variance/index.html');require('child_process').spawn(process.platform==='win32'?'cmd':'open',process.platform==='win32'?['/c','start','',p]:[p],{detached:true,stdio:'ignore'}).unref()\""
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "@types/node": "^22.10.2",
+    "dotenv": "^16.4.7",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.7.2"
+  }
+}

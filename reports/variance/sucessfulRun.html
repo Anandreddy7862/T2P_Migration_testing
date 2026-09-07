@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tableau to Power BI Variance Report</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1a1d21; --muted: #5c6570; --line: #e3e7ec;
+    --card: #f7f9fb; --head: #eef2f6;
+    --pass: #1a7f4b; --pass-bg: #e9f7ef;
+    --fail: #b3261e; --fail-bg: #fdeceb;
+    --tableau: #1f4e79; --powerbi: #b8860b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #16191d; --fg: #e6e9ed; --muted: #9aa4b0; --line: #2c3238;
+      --card: #1d2126; --head: #232830;
+      --pass: #4ec98a; --pass-bg: #14301f;
+      --fail: #ff8b82; --fail-bg: #3a1a17;
+      --tableau: #7fb3e0; --powerbi: #e8c46a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 32px 24px 64px;
+    background: var(--bg); color: var(--fg);
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  h2 { font-size: 19px; margin: 40px 0 12px; padding-bottom: 6px; border-bottom: 2px solid var(--line); }
+  h3 { font-size: 15px; margin: 24px 0 8px; font-weight: 600; }
+  .sub { color: var(--muted); margin: 0 0 24px; font-size: 13px; }
+  .cards { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0 8px; }
+  .card {
+    flex: 1 1 130px; background: var(--card); border: 1px solid var(--line);
+    border-radius: 8px; padding: 12px 14px;
+  }
+  .card .n { font-size: 24px; font-weight: 650; letter-spacing: -0.02em; }
+  .card .l { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-top: 2px; }
+  .meta { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin: 16px 0; font-size: 13px; }
+  .meta div { margin: 3px 0; }
+  .meta b { font-weight: 600; }
+  .scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; margin: 10px 0 6px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  thead th { background: var(--head); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); position: sticky; top: 0; }
+  tbody tr:last-child td { border-bottom: none; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+  th.num { text-align: right; }
+  .t-val { color: var(--tableau); font-weight: 600; }
+  .p-val { color: var(--powerbi); font-weight: 600; }
+  tr.pass td:first-child { box-shadow: inset 3px 0 var(--pass); }
+  tr.fail td:first-child { box-shadow: inset 3px 0 var(--fail); }
+  tr.fail td.num.var { color: var(--fail); font-weight: 700; }
+  .badge { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; }
+  .badge.pass { color: var(--pass); background: var(--pass-bg); }
+  .badge.fail { color: var(--fail); background: var(--fail-bg); }
+  .visual { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin: 14px 0; background: var(--card); }
+  .visual > .head { display: flex; flex-wrap: wrap; gap: 10px; align-items: baseline; justify-content: space-between; }
+  .visual .name { font-size: 15px; font-weight: 650; }
+  .visual .stats { color: var(--muted); font-size: 12px; }
+  .note { border-left: 3px solid var(--fail); background: var(--fail-bg); padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 10px 0; font-size: 13.5px; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; background: var(--head); padding: 1px 5px; border-radius: 4px; }
+  footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+  .shape { border-left: 3px solid var(--muted); background: var(--head); padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 10px 0; font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Tableau to Power BI variance report</h1>
+  <p class="sub">Data validation for the migrated dashboards. Tableau is the baseline; Power BI is the platform under validation.</p>
+
+  <div class="cards">
+    <div class="card"><div class="n">2</div><div class="l">Dashboards</div></div>
+    <div class="card"><div class="n">6</div><div class="l">Visuals validated</div></div>
+    <div class="card"><div class="n">155</div><div class="l">Values compared</div></div>
+    <div class="card"><div class="n">155</div><div class="l">Pass</div></div>
+    <div class="card"><div class="n">0</div><div class="l">Fail</div></div>
+  </div>
+
+  <div class="meta">
+    <div><b>Generated</b> 2026-08-24 14:57:05</div>
+    <div><b>Sources</b> <code>downloads/tableau</code> vs <code>downloads/powerbi</code> (newest file 2026-08-24 14:51:59)</div>
+    <div><b>Variance</b> <code>((powerbi - tableau) / abs(tableau)) * 100</code></div>
+    <div><b>Threshold</b> PASS at or under 0.5% variance &middot; FAIL above it, or when a value exists on one platform only</div>
+    <div><b>Verdict</b> <span class="badge pass">PASS</span></div>
+  </div>
+
+  <h2>Analysis <span class="badge pass">PASS</span></h2>
+  <div class="visual">
+    <div class="head">
+      <span class="name">DualAxis <span class="badge pass">PASS</span></span>
+      <span class="stats">10 keys &middot; 1 measures &middot; 10 values &middot; 10 pass / 0 fail &middot; Tableau 10 rows vs Power BI 10 rows &middot; max variance 0.00%</span>
+    </div>
+    <div class="scroll"><table><thead><tr><th>Region</th><th>Measure</th><th class="num">Tableau</th><th class="num">Power BI</th><th class="num">Variance %</th><th>Status</th></tr></thead><tbody>
+      <tr class="pass"><td>East Asia</td><td>annual visitors millions</td><td class="num t-val">19</td><td class="num p-val">19.00</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Middle East</td><td>annual visitors millions</td><td class="num t-val">6</td><td class="num p-val">6.00</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>North Africa</td><td>annual visitors millions</td><td class="num t-val">2.8</td><td class="num p-val">2.80</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>North America</td><td>annual visitors millions</td><td class="num t-val">205.1</td><td class="num p-val">205.10</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Oceania</td><td>annual visitors millions</td><td class="num t-val">8.2</td><td class="num p-val">8.20</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>South America</td><td>annual visitors millions</td><td class="num t-val">3.7</td><td class="num p-val">3.70</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>South Asia</td><td>annual visitors millions</td><td class="num t-val">7.5</td><td class="num p-val">7.50</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Southeast Asia</td><td>annual visitors millions</td><td class="num t-val">2.6</td><td class="num p-val">2.60</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Southern Europe</td><td>annual visitors millions</td><td class="num t-val">21.35</td><td class="num p-val">21.35</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Western Europe</td><td>annual visitors millions</td><td class="num t-val">63.7</td><td class="num p-val">63.70</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+    </tbody></table></div>
+  </div>
+  <div class="visual">
+    <div class="head">
+      <span class="name">Multiple_Values_with_Filter <span class="badge pass">PASS</span></span>
+      <span class="stats">14 keys &middot; 2 measures &middot; 28 values &middot; 28 pass / 0 fail &middot; Tableau 28 rows vs Power BI 14 rows &middot; max variance 0.00% &middot; <b>row counts differ</b></span>
+    </div>
+    <div class="shape">row counts differ by export shape only (Tableau tableau-long vs Power BI wide); both sides carry the same 28 values across 14 keys x 2 measures</div>
+    <div class="scroll"><table><thead><tr><th>Country</th><th>Measure</th><th class="num">Tableau</th><th class="num">Power BI</th><th class="num">Variance %</th><th>Status</th></tr></thead><tbody>
+      <tr class="pass"><td>Australia</td><td>annual visitors millions</td><td class="num t-val">8.2</td><td class="num p-val">8.20</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Australia</td><td>entry fee usd</td><td class="num t-val">49</td><td class="num p-val">$49</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Brazil</td><td>annual visitors millions</td><td class="num t-val">2.2</td><td class="num p-val">2.20</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Brazil</td><td>entry fee usd</td><td class="num t-val">12</td><td class="num p-val">$12</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Cambodia</td><td>annual visitors millions</td><td class="num t-val">2.6</td><td class="num p-val">2.60</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Cambodia</td><td>entry fee usd</td><td class="num t-val">37</td><td class="num p-val">$37</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>China</td><td>annual visitors millions</td><td class="num t-val">19</td><td class="num p-val">19.00</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>China</td><td>entry fee usd</td><td class="num t-val">18</td><td class="num p-val">$18</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Egypt</td><td>annual visitors millions</td><td class="num t-val">2.8</td><td class="num p-val">2.80</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Egypt</td><td>entry fee usd</td><td class="num t-val">20</td><td class="num p-val">$20</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>France</td><td>annual visitors millions</td><td class="num t-val">36.4</td><td class="num p-val">36.40</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>France</td><td>entry fee usd</td><td class="num t-val">78</td><td class="num p-val">$78</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Greece</td><td>annual visitors millions</td><td class="num t-val">4</td><td class="num p-val">4.00</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Greece</td><td>entry fee usd</td><td class="num t-val">13</td><td class="num p-val">$13</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>India</td><td>annual visitors millions</td><td class="num t-val">7.5</td><td class="num p-val">7.50</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>India</td><td>entry fee usd</td><td class="num t-val">15</td><td class="num p-val">$15</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Italy</td><td>annual visitors millions</td><td class="num t-val">12.65</td><td class="num p-val">12.65</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Italy</td><td>entry fee usd</td><td class="num t-val">38</td><td class="num p-val">$38</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Peru</td><td>annual visitors millions</td><td class="num t-val">1.5</td><td class="num p-val">1.50</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Peru</td><td>entry fee usd</td><td class="num t-val">70</td><td class="num p-val">$70</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Spain</td><td>annual visitors millions</td><td class="num t-val">4.7</td><td class="num p-val">4.70</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Spain</td><td>entry fee usd</td><td class="num t-val">26</td><td class="num p-val">$26</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>United Arab Emirates</td><td>annual visitors millions</td><td class="num t-val">6</td><td class="num p-val">6.00</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>United Arab Emirates</td><td>entry fee usd</td><td class="num t-val">45</td><td class="num p-val">$45</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>United Kingdom</td><td>annual visitors millions</td><td class="num t-val">27.3</td><td class="num p-val">27.30</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>United Kingdom</td><td>entry fee usd</td><td class="num t-val">0</td><td class="num p-val">$0</td><td class="num var">0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>United States</td><td>annual visitors millions</td><td class="num t-val">205.1</td><td class="num p-val">205.10</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>United States</td><td>entry fee usd</td><td class="num t-val">317</td><td class="num p-val">$317</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+    </tbody></table></div>
+  </div>
+  <div class="visual">
+    <div class="head">
+      <span class="name">Multiple_Values_without_Filter <span class="badge pass">PASS</span></span>
+      <span class="stats">14 keys &middot; 5 measures &middot; 70 values &middot; 70 pass / 0 fail &middot; Tableau 70 rows vs Power BI 14 rows &middot; max variance 0.00% &middot; <b>row counts differ</b></span>
+    </div>
+    <div class="shape">row counts differ by export shape only (Tableau tableau-long vs Power BI wide); both sides carry the same 70 values across 14 keys x 5 measures</div>
+    <div class="scroll"><table><thead><tr><th>Country</th><th>Measure</th><th class="num">Tableau</th><th class="num">Power BI</th><th class="num">Variance %</th><th>Status</th></tr></thead><tbody>
+      <tr class="pass"><td>Australia</td><td>annual visitors millions</td><td class="num t-val">8.2</td><td class="num p-val">8.20</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Australia</td><td>count</td><td class="num t-val">1</td><td class="num p-val">1</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Australia</td><td>entry fee usd</td><td class="num t-val">49</td><td class="num p-val">$49</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Australia</td><td>tourism revenue million usd</td><td class="num t-val">110</td><td class="num p-val">$110</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Australia</td><td>visit duration hours</td><td class="num t-val">1.5</td><td class="num p-val">1.5</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Brazil</td><td>annual visitors millions</td><td class="num t-val">2.2</td><td class="num p-val">2.20</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Brazil</td><td>count</td><td class="num t-val">1</td><td class="num p-val">1</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Brazil</td><td>entry fee usd</td><td class="num t-val">12</td><td class="num p-val">$12</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Brazil</td><td>tourism revenue million usd</td><td class="num t-val">35</td><td class="num p-val">$35</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Brazil</td><td>visit duration hours</td><td class="num t-val">1.5</td><td class="num p-val">1.5</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Cambodia</td><td>annual visitors millions</td><td class="num t-val">2.6</td><td class="num p-val">2.60</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Cambodia</td><td>count</td><td class="num t-val">1</td><td class="num p-val">1</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Cambodia</td><td>entry fee usd</td><td class="num t-val">37</td><td class="num p-val">$37</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Cambodia</td><td>tourism revenue million usd</td><td class="num t-val">90</td><td class="num p-val">$90</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Cambodia</td><td>visit duration hours</td><td class="num t-val">6</td><td class="num p-val">6.0</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>China</td><td>annual visitors millions</td><td class="num t-val">19</td><td class="num p-val">19.00</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>China</td><td>count</td><td class="num t-val">2</td><td class="num p-val">2</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>China</td><td>entry fee usd</td><td class="num t-val">18</td><td class="num p-val">$18</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>China</td><td>tourism revenue million usd</td><td class="num t-val">255</td><td class="num p-val">$255</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>China</td><td>visit duration hours</td><td class="num t-val">7</td><td class="num p-val">7.0</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Egypt</td><td>annual visitors millions</td><td class="num t-val">2.8</td><td class="num p-val">2.80</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Egypt</td><td>count</td><td class="num t-val">1</td><td class="num p-val">1</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Egypt</td><td>entry fee usd</td><td class="num t-val">20</td><td class="num p-val">$20</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Egypt</td><td>tourism revenue million usd</td><td class="num t-val">40</td><td class="num p-val">$40</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Egypt</td><td>visit duration hours</td><td class="num t-val">3</td><td class="num p-val">3.0</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>France</td><td>annual visitors millions</td><td class="num t-val">36.4</td><td class="num p-val">36.40</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>France</td><td>count</td><td class="num t-val">4</td><td class="num p-val">4</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>France</td><td>entry fee usd</td><td class="num t-val">78</td><td class="num p-val">$78</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>France</td><td>tourism revenue million usd</td><td class="num t-val">445</td><td class="num p-val">$445</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>France</td><td>visit duration hours</td><td class="num t-val">11.5</td><td class="num p-val">11.5</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Greece</td><td>annual visitors millions</td><td class="num t-val">4</td><td class="num p-val">4.00</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Greece</td><td>count</td><td class="num t-val">1</td><td class="num p-val">1</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Greece</td><td>entry fee usd</td><td class="num t-val">13</td><td class="num p-val">$13</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Greece</td><td>tourism revenue million usd</td><td class="num t-val">60</td><td class="num p-val">$60</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Greece</td><td>visit duration hours</td><td class="num t-val">3</td><td class="num p-val">3.0</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>India</td><td>annual visitors millions</td><td class="num t-val">7.5</td><td class="num p-val">7.50</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>India</td><td>count</td><td class="num t-val">1</td><td class="num p-val">1</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>India</td><td>entry fee usd</td><td class="num t-val">15</td><td class="num p-val">$15</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>India</td><td>tourism revenue million usd</td><td class="num t-val">65</td><td class="num p-val">$65</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>India</td><td>visit duration hours</td><td class="num t-val">2</td><td class="num p-val">2.0</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Italy</td><td>annual visitors millions</td><td class="num t-val">12.65</td><td class="num p-val">12.65</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Italy</td><td>count</td><td class="num t-val">2</td><td class="num p-val">2</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Italy</td><td>entry fee usd</td><td class="num t-val">38</td><td class="num p-val">$38</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Italy</td><td>tourism revenue million usd</td><td class="num t-val">140</td><td class="num p-val">$140</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Italy</td><td>visit duration hours</td><td class="num t-val">4</td><td class="num p-val">4.0</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Peru</td><td>annual visitors millions</td><td class="num t-val">1.5</td><td class="num p-val">1.50</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Peru</td><td>count</td><td class="num t-val">1</td><td class="num p-val">1</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Peru</td><td>entry fee usd</td><td class="num t-val">70</td><td class="num p-val">$70</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Peru</td><td>tourism revenue million usd</td><td class="num t-val">180</td><td class="num p-val">$180</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Peru</td><td>visit duration hours</td><td class="num t-val">8</td><td class="num p-val">8.0</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Spain</td><td>annual visitors millions</td><td class="num t-val">4.7</td><td class="num p-val">4.70</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Spain</td><td>count</td><td class="num t-val">1</td><td class="num p-val">1</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Spain</td><td>entry fee usd</td><td class="num t-val">26</td><td class="num p-val">$26</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Spain</td><td>tourism revenue million usd</td><td class="num t-val">130</td><td class="num p-val">$130</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Spain</td><td>visit duration hours</td><td class="num t-val">2</td><td class="num p-val">2.0</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>United Arab Emirates</td><td>annual visitors millions</td><td class="num t-val">6</td><td class="num p-val">6.00</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>United Arab Emirates</td><td>count</td><td class="num t-val">1</td><td class="num p-val">1</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>United Arab Emirates</td><td>entry fee usd</td><td class="num t-val">45</td><td class="num p-val">$45</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>United Arab Emirates</td><td>tourism revenue million usd</td><td class="num t-val">350</td><td class="num p-val">$350</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>United Arab Emirates</td><td>visit duration hours</td><td class="num t-val">2</td><td class="num p-val">2.0</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>United Kingdom</td><td>annual visitors millions</td><td class="num t-val">27.3</td><td class="num p-val">27.30</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>United Kingdom</td><td>count</td><td class="num t-val">3</td><td class="num p-val">3</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>United Kingdom</td><td>entry fee usd</td><td class="num t-val">0</td><td class="num p-val">$0</td><td class="num var">0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>United Kingdom</td><td>tourism revenue million usd</td><td class="num t-val">255</td><td class="num p-val">$255</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>United Kingdom</td><td>visit duration hours</td><td class="num t-val">2.5</td><td class="num p-val">2.5</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>United States</td><td>annual visitors millions</td><td class="num t-val">205.1</td><td class="num p-val">205.10</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>United States</td><td>count</td><td class="num t-val">10</td><td class="num p-val">10</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>United States</td><td>entry fee usd</td><td class="num t-val">317</td><td class="num p-val">$317</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>United States</td><td>tourism revenue million usd</td><td class="num t-val">15650</td><td class="num p-val">$15650</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>United States</td><td>visit duration hours</td><td class="num t-val">41</td><td class="num p-val">41.0</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+    </tbody></table></div>
+  </div>
+  <h2>analysis_2 <span class="badge pass">PASS</span></h2>
+  <div class="visual">
+    <div class="head">
+      <span class="name">City_vs_visitors <span class="badge pass">PASS</span></span>
+      <span class="stats">23 keys &middot; 1 measures &middot; 23 values &middot; 23 pass / 0 fail &middot; Tableau 23 rows vs Power BI 23 rows &middot; max variance 0.00%</span>
+    </div>
+    <div class="scroll"><table><thead><tr><th>City</th><th>Measure</th><th class="num">Tableau</th><th class="num">Power BI</th><th class="num">Variance %</th><th>Status</th></tr></thead><tbody>
+      <tr class="pass"><td>Agra</td><td>visit duration hours</td><td class="num t-val">2</td><td class="num p-val">2</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Anaheim</td><td>visit duration hours</td><td class="num t-val">8</td><td class="num p-val">8</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Arizona</td><td>visit duration hours</td><td class="num t-val">5</td><td class="num p-val">5</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Athens</td><td>visit duration hours</td><td class="num t-val">3</td><td class="num p-val">3</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Barcelona</td><td>visit duration hours</td><td class="num t-val">2</td><td class="num p-val">2</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Beijing</td><td>visit duration hours</td><td class="num t-val">3</td><td class="num p-val">3</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Beijing/Multiple</td><td>visit duration hours</td><td class="num t-val">4</td><td class="num p-val">4</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Cairo</td><td>visit duration hours</td><td class="num t-val">3</td><td class="num p-val">3</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Cusco Region</td><td>visit duration hours</td><td class="num t-val">8</td><td class="num p-val">8</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Dubai</td><td>visit duration hours</td><td class="num t-val">2</td><td class="num p-val">2</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Las Vegas</td><td>visit duration hours</td><td class="num t-val">8</td><td class="num p-val">8</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>London</td><td>visit duration hours</td><td class="num t-val">2.5</td><td class="num p-val">2.5</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>New York City</td><td>visit duration hours</td><td class="num t-val">8</td><td class="num p-val">8</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Orlando</td><td>visit duration hours</td><td class="num t-val">10</td><td class="num p-val">10</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Paris</td><td>visit duration hours</td><td class="num t-val">7.5</td><td class="num p-val">7.5</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Pisa</td><td>visit duration hours</td><td class="num t-val">1.5</td><td class="num p-val">1.5</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Rio de Janeiro</td><td>visit duration hours</td><td class="num t-val">1.5</td><td class="num p-val">1.5</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Rome</td><td>visit duration hours</td><td class="num t-val">2.5</td><td class="num p-val">2.5</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>San Francisco</td><td>visit duration hours</td><td class="num t-val">1</td><td class="num p-val">1</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Siem Reap</td><td>visit duration hours</td><td class="num t-val">6</td><td class="num p-val">6</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Sydney</td><td>visit duration hours</td><td class="num t-val">1.5</td><td class="num p-val">1.5</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Versailles</td><td>visit duration hours</td><td class="num t-val">4</td><td class="num p-val">4</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Washington D.C.</td><td>visit duration hours</td><td class="num t-val">1</td><td class="num p-val">1</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+    </tbody></table></div>
+  </div>
+  <div class="visual">
+    <div class="head">
+      <span class="name">Country_vs_visitors <span class="badge pass">PASS</span></span>
+      <span class="stats">14 keys &middot; 1 measures &middot; 14 values &middot; 14 pass / 0 fail &middot; Tableau 14 rows vs Power BI 14 rows &middot; max variance 0.00%</span>
+    </div>
+    <div class="scroll"><table><thead><tr><th>Country</th><th>Measure</th><th class="num">Tableau</th><th class="num">Power BI</th><th class="num">Variance %</th><th>Status</th></tr></thead><tbody>
+      <tr class="pass"><td>Australia</td><td>annual visitors millions</td><td class="num t-val">8.2</td><td class="num p-val">8.20</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Brazil</td><td>annual visitors millions</td><td class="num t-val">2.2</td><td class="num p-val">2.20</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Cambodia</td><td>annual visitors millions</td><td class="num t-val">2.6</td><td class="num p-val">2.60</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>China</td><td>annual visitors millions</td><td class="num t-val">19</td><td class="num p-val">19.00</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Egypt</td><td>annual visitors millions</td><td class="num t-val">2.8</td><td class="num p-val">2.80</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>France</td><td>annual visitors millions</td><td class="num t-val">36.4</td><td class="num p-val">36.40</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Greece</td><td>annual visitors millions</td><td class="num t-val">4</td><td class="num p-val">4.00</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>India</td><td>annual visitors millions</td><td class="num t-val">7.5</td><td class="num p-val">7.50</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Italy</td><td>annual visitors millions</td><td class="num t-val">12.65</td><td class="num p-val">12.65</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Peru</td><td>annual visitors millions</td><td class="num t-val">1.5</td><td class="num p-val">1.50</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Spain</td><td>annual visitors millions</td><td class="num t-val">4.7</td><td class="num p-val">4.70</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>United Arab Emirates</td><td>annual visitors millions</td><td class="num t-val">6</td><td class="num p-val">6.00</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>United Kingdom</td><td>annual visitors millions</td><td class="num t-val">27.3</td><td class="num p-val">27.30</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>United States</td><td>annual visitors millions</td><td class="num t-val">205.1</td><td class="num p-val">205.10</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+    </tbody></table></div>
+  </div>
+  <div class="visual">
+    <div class="head">
+      <span class="name">Region_vs_visitors <span class="badge pass">PASS</span></span>
+      <span class="stats">10 keys &middot; 1 measures &middot; 10 values &middot; 10 pass / 0 fail &middot; Tableau 10 rows vs Power BI 10 rows &middot; max variance 0.00%</span>
+    </div>
+    <div class="scroll"><table><thead><tr><th>Region</th><th>Measure</th><th class="num">Tableau</th><th class="num">Power BI</th><th class="num">Variance %</th><th>Status</th></tr></thead><tbody>
+      <tr class="pass"><td>East Asia</td><td>annual visitors millions</td><td class="num t-val">19</td><td class="num p-val">19.00</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Middle East</td><td>annual visitors millions</td><td class="num t-val">6</td><td class="num p-val">6.00</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>North Africa</td><td>annual visitors millions</td><td class="num t-val">2.8</td><td class="num p-val">2.80</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>North America</td><td>annual visitors millions</td><td class="num t-val">205.1</td><td class="num p-val">205.10</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Oceania</td><td>annual visitors millions</td><td class="num t-val">8.2</td><td class="num p-val">8.20</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>South America</td><td>annual visitors millions</td><td class="num t-val">3.7</td><td class="num p-val">3.70</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>South Asia</td><td>annual visitors millions</td><td class="num t-val">7.5</td><td class="num p-val">7.50</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Southeast Asia</td><td>annual visitors millions</td><td class="num t-val">2.6</td><td class="num p-val">2.60</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Southern Europe</td><td>annual visitors millions</td><td class="num t-val">21.35</td><td class="num p-val">21.35</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+      <tr class="pass"><td>Western Europe</td><td>annual visitors millions</td><td class="num t-val">63.7</td><td class="num p-val">63.70</td><td class="num var">+0.00%</td><td><span class="badge pass">PASS</span></td></tr>
+    </tbody></table></div>
+  </div>
+  <h2>Unpaired visuals</h2>
+  <p class="sub">None &mdash; every visual was found on both platforms and validated.</p>
+  <h2>Pairing audit</h2>
+  <p class="sub">Which Tableau file was compared against which Power BI file. The <code>index_</code> prefix is stripped before matching, because a visual&rsquo;s canvas position does not correspond across platforms.</p>
+  <div class="scroll"><table><thead><tr><th>Dashboard</th><th>Tableau file</th><th>Power BI file</th><th>Matched on</th><th>Shape (T / PBI)</th></tr></thead><tbody>
+    <tr><td>Analysis</td><td><code>Analysis/2_DualAxis.csv</code></td><td><code>Analysis/0_DualAxis.csv</code></td><td>name match after stripping index prefix -&gt; &quot;dualaxis&quot;</td><td>measure-names-only / wide</td></tr>
+    <tr><td>Analysis</td><td><code>Analysis/1_Multiple_Values_with_Filter.csv</code></td><td><code>Analysis/2_Multiple_Values_with_Filter.csv</code></td><td>name match after stripping index prefix -&gt; &quot;multiple values with filter&quot;</td><td>tableau-long / wide</td></tr>
+    <tr><td>Analysis</td><td><code>Analysis/0_Multiple_Values_without_Filter.csv</code></td><td><code>Analysis/1_Multiple_Values_without_Filter.csv</code></td><td>name match after stripping index prefix -&gt; &quot;multiple values without filter&quot;</td><td>tableau-long / wide</td></tr>
+    <tr><td>analysis_2</td><td><code>analysis_2/2_City_vs_visitors.csv</code></td><td><code>analysis_2/2_City_vs_visitors.csv</code></td><td>name match after stripping index prefix -&gt; &quot;city vs visitors&quot;</td><td>wide / wide</td></tr>
+    <tr><td>analysis_2</td><td><code>analysis_2/1_Country_vs_visitors.csv</code></td><td><code>analysis_2/1_Country_vs_visitors.csv</code></td><td>name match after stripping index prefix -&gt; &quot;country vs visitors&quot;</td><td>wide / wide</td></tr>
+    <tr><td>analysis_2</td><td><code>analysis_2/0_Region_vs_visitors.csv</code></td><td><code>analysis_2/0_Region_vs_visitors.csv</code></td><td>name match after stripping index prefix -&gt; &quot;region vs visitors&quot;</td><td>wide / wide</td></tr>
+  </tbody></table></div>
+
+  <footer>
+    Generated by the <code>bi-variance-report</code> skill. Machine-readable findings: <code>reports/variance/variance.json</code>.
+  </footer>
+
+</div>
+</body>
+</html>
