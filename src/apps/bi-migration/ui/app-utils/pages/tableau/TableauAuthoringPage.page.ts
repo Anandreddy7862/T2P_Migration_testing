@@ -119,8 +119,8 @@ export class TableauAuthoringPage extends BasePage {
   async focusVisual(index: number): Promise<void> {
     //const container = this.locators.visualAxisLocator().nth(index);
     const container = this.locators.visualTitleLocator().nth(index);
-    await container.scrollIntoViewIfNeeded({ timeout: 3_000 }).catch(() => undefined);
-    await container.click({ timeout: 1000 });
+    await container.scrollIntoViewIfNeeded()
+    await container.click();
   }
 
   async clickDownloadButton(): Promise<void>{
@@ -128,11 +128,27 @@ export class TableauAuthoringPage extends BasePage {
     await click(this.locators.downloadButton());
   }
 
-  async clickData(): Promise<void>{
+  async clickData(): Promise<boolean> {
     await waitForVisible(this.locators.downlaodMenu());
     await waitForVisible(this.locators.clickDataOption());
+  
+    if (await this.isDataDisabled()) {
+      return false;               // skip the click
+    }
+  
     await click(this.locators.clickDataOption());
     await setTimeout(1000);
+    return true;
+  }
+
+
+  async isDataDisabled(): Promise<boolean> {
+    const el = this.locators.clickDataOption();
+  
+    if ((await el.getAttribute('aria-disabled')) === 'true') return true;
+  
+    const classes = (await el.getAttribute('class')) ?? '';
+    return classes.split(/\s+/).includes('tabDisabled');
   }
 
   /**

@@ -37,11 +37,11 @@ export class TableauAuthoringPageLocators {
 
   dashboardTabs = (): Locator => this.page.locator('.tabDashboard');
 
-  visualizationContainers = (): Locator => this.page.locator("div[data-tb-test-id='VisualizationContainer']");
+  visualizationContainers = (): Locator => this.page.locator("//div[@data-tb-test-id='VisualizationContainer'][.//div[contains(@class,'tab-clip-focusbox')][not(contains(@aria-label,'No data to visuali'))]]");
 
   visualAxisLocator = (): Locator => this.page.locator("div[data-tb-test-id='VisualizationContainer']").first();
 
-  visualTitleLocator =(): Locator => this.page.locator("[data-tb-test-id='VisualizationContainer'] .tab-textRegion-boundary");
+  visualTitleLocator =(): Locator => this.page.locator("//div[@data-tb-test-id='VisualizationContainer'][.//div[contains(@class,'tab-clip-focusbox')][not(contains(@aria-label,'No data to visuali'))]]");
 
   downloadButton = (): Locator=> this.page.getByRole("button",{name:"Download"});
 
@@ -49,7 +49,10 @@ export class TableauAuthoringPageLocators {
 
   downlaodMenu =(): Locator => this.page.locator(".tabMenuContent");
 
-  clickDataOption =(): Locator => this.page.locator('//div//span[@class="tabMenuItemName"][contains(text(),"Data")]');
+  clickDataOption =(): Locator =>
+  this.page
+    .locator('[data-test-id="tabMenuItem"]')
+    .filter({ hasText: 'Data' });
 
   /**
    * The modal glass Tableau raises while a menu is open. It covers the whole

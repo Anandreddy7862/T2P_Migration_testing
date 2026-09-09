@@ -229,7 +229,19 @@ export class TableauVisualDataModule {
 
     try {
       await authoring.focusVisual(index);
+      await this.page.waitForTimeout(3_000);
       await authoring.clickDownloadButton()
+
+      if (await authoring.isDataDisabled()) {
+        await authoring.clearOverlays();
+        return {
+          dashboard: dashboardName,
+          index,
+          title: `container ${index}`,
+          filePath: null,
+          error: `Data option disabled — no underlying data (container ${geometry})`,
+        };
+      }
 
       const [opened] = await Promise.all([
         this.page.context().waitForEvent('page', { timeout: 20_000 }),
