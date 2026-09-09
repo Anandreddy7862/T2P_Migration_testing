@@ -229,7 +229,8 @@ export class TableauVisualDataModule {
 
     try {
       await authoring.focusVisual(index);
-      await this.page.waitForTimeout(3_000);
+      await this.page.waitForTimeout(2_000);
+      await authoring.deselectVisual(index);
       await authoring.clickDownloadButton()
 
       if (await authoring.isDataDisabled()) {
@@ -259,11 +260,11 @@ export class TableauVisualDataModule {
       const saved = await saveCapturedDownload(download, { targetDir, baseName: `${index}_${title}` });
 
       await viewDataPage.close();
-      await this.page.waitForTimeout(1_000);
+      await this.page.waitForTimeout(2_000);
 
       return { dashboard: dashboardName, index, title, filePath: saved.filePath };
     } catch (error) {
-      await popup?.close().catch(() => undefined);
+      await popup?.close();
       await authoring.clearOverlays();
       return {
         dashboard: dashboardName,

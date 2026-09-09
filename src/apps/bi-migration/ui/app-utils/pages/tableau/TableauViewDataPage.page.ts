@@ -64,4 +64,5 @@ export class TableauViewDataPage extends BasePage {
   downloadButton(): Locator {
     return this.locators.downloadButton();
   }
+  
 }

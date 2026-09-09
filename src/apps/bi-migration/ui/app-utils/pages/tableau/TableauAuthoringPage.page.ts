@@ -1,4 +1,4 @@
-import type { Download, Page } from '@playwright/test';
+import type { Download, Locator, Page } from '@playwright/test';
 import { setTimeout } from 'timers/promises';
 import { BasePage } from '@common-utils/base/BasePage';
 import { click, clickIfVisible } from '@common-utils/ui-utils/actions';
@@ -164,15 +164,14 @@ export class TableauAuthoringPage extends BasePage {
       // the shared helper - which waits 30s for visibility - cost 30s per call
       // whenever a glass sat in the DOM without being visible. Three of those
       // per call, on every context-menu attempt, was most of an 8 minute run.
-      if (!(await isVisibleWithin(this.locators.modalGlass().first(), 500))) return;
+      if (!(await isVisibleWithin(this.locators.modalGlass().first(), 500 ))) return;
 
       // Short and tolerant: the glass is REMOVED from the DOM when dismissed, so
       // it can vanish between the check and the click. That race is success.
       await this.locators
         .modalGlass()
         .first()
-        .click({ timeout: 3_000 })
-        .catch(() => undefined);
+        .click();
     }
   }
 
@@ -185,5 +184,69 @@ export class TableauAuthoringPage extends BasePage {
   async captureDownload(trigger: () => Promise<void>, timeout = 30_000): Promise<Download> {
     const [download] = await Promise.all([this.page.waitForEvent('download', { timeout }), trigger()]);
     return download;
+  }
+
+  /**
+   * The clickable container for one visual, in the same FILTERED order that
+   * `describeVisualContainers()` reports - so an index means the same visual to
+   * every caller.
+   *
+   * Synchronous on purpose: building a locator resolves nothing, and returning
+   * a promise here blocks the `.locator(...)` chaining that `visualContainer()`
+   * needs.
+   */
+  visualTitle(index: number): Locator {
+    return this.locators.visualTitleLocator().nth(index);
+  }
+
+  /** The `.tab-tiledViewer` worksheet shell owning that visual. */
+  visualContainer(index: number): Locator {
+    return this.locators.visualContainer(index);
+  }
+
+  /**
+   * Whether this visual currently holds a selection that would FILTER its
+   * export.
+   *
+   * Measured wordings of the scoped aria-live region, all four confirmed live:
+   *   ""                      - untouched, nothing selected
+   *   "Mark selected. …"      - a data point is selected
+   *   "Header selected. …"    - an axis label is selected
+   *   "Mark deselected."      - a selection was just cleared
+   *
+   * DATA POINTS ONLY, by design. A header selection also filters the export -
+   * measured: a click announcing "Header selected." produced
+   * "View Data: by IPA (1 mark)" - but it is deliberately out of scope here, so
+   * this stays a precise answer to the question its name asks. The `(N marks)`
+   * suffix on the View Data window title is the signal that catches a header
+   * selection; see TableauViewDataPage.readVisualTitle().
+   *
+   * There is deliberately no aria-label fallback. The focusbox label never
+   * carries "Press Escape to remove selections" in this build - measured in
+   * every state - so that branch could only ever return false, and reaching it
+   * cost a full action timeout per call.
+   */
+  async isMarkSelected(index: number): Promise<boolean> {
+    const status = this.locators.visualStatusRegion(index);
+    if ((await status.count()) === 0) return false;
+
+    const text = ((await status.first().textContent()) ?? '').trim();
+    return /^Mark\s+selected/i.test(text);
+  }
+
+
+  async deselectVisual(index: number, attempts = 3): Promise<boolean> {
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+      if (!(await this.isMarkSelected(index))) return true;
+  
+      const container = this.visualTitle(index);
+      await container.scrollIntoViewIfNeeded();
+      await container.click();
+  
+      // Let the aria-live region update before re-reading.
+      await this.page.waitForTimeout(2000);
+    }
+  
+    return !(await this.isMarkSelected(index));
   }
 }
