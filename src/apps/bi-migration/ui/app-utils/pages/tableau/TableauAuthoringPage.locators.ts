@@ -39,7 +39,7 @@ export class TableauAuthoringPageLocators {
 
   visualizationContainers = (): Locator => this.page.locator("div[data-tb-test-id='VisualizationContainer']");
 
-  visualAxisLocator = (): Locator => this.page.locator(".tab-vizAxisWrapper");
+  visualAxisLocator = (): Locator => this.page.locator("div[data-tb-test-id='VisualizationContainer']").first();
 
   visualTitleLocator =(): Locator => this.page.locator("[data-tb-test-id='VisualizationContainer'] .tab-textRegion-boundary");
 

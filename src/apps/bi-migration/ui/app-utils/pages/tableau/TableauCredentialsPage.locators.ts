@@ -12,12 +12,24 @@ export class TableauCredentialsPageLocators {
 
   emailInput = (): Locator => this.page.getByLabel(/email|username/i).or(this.page.locator('#email')).first();
 
-  /** The IdP names the field `login_password`, not `password`. */
+  /**
+   * The IdP names the field `login_password`, not `password`.
+   *
+   * Every branch is narrowed with `and(input[type="password"])`, and that guard
+   * is load-bearing. Tableau's "Sign in to reconnect" data source dialog puts a
+   * "Remember Password" CHECKBOX on the authoring page, and a bare
+   * `getByLabel(/password/i)` resolves to it - that dialog's real password box
+   * carries an EMPTY <label>, so the checkbox is the only thing the label match
+   * can find. Without the guard the screen probe reads an already-signed-in
+   * authoring page as the credentials screen and the sign-in flow spins trying
+   * to `fill()` a checkbox.
+   */
   passwordInput = (): Locator =>
     this.page
       .getByLabel(/password/i)
       .or(this.page.locator('#password'))
       .or(this.page.locator('input[name="login_password"]'))
+      .and(this.page.locator('input[type="password"]'))
       .first();
 
   signInButton = (): Locator =>
