@@ -40,7 +40,7 @@ export class PowerBiReportPageLocators {
    * `visual-clusteredColumnChart` - so matching "Chart" selects charts and skips
    * cards, slicers and tables.
    */
-  charts = (): Locator => this.page.locator("//div[@data-testid='visual-content-desc' and not(contains(@class,'visual-slicer'))]/ancestor::div[@data-testid='visual-style']//div[@data-testid='visual-title']//h3");
+  charts = (): Locator => this.page.locator("//div[@data-testid='visual-content-desc'][not(contains(@class,'visual-slicer') or contains(@class,'visual-textbox') or contains(@class,'visual-image'))]");
 
   /**
    * Dynamic: the container that OWNS one chart.

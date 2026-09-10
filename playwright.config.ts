@@ -29,7 +29,7 @@ const uiUse = {
 export default defineConfig({
   testDir: './src/apps/bi-migration/ui',
   outputDir: './test-results',
-  fullyParallel: false,
+  fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: EnvConfig.retries,
   workers: EnvConfig.workers,

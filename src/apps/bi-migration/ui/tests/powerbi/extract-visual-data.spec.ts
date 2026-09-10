@@ -13,15 +13,21 @@ test.describe('Power BI visual data extraction', () => {
   test(
     'should download the data behind every visual on every report page',
     { tag: ['@powerbi'] },
+
     async ({ uiModuleManager }) => {
+
       test.setTimeout(30 * 60 * 1000);
+
       const extractor = uiModuleManager.powerBiVisualData;
+ 
+      await test.step('Given the Power BI downloads folder is empty', () => 
+        extractor.clearDownloadsFolder());
 
-      await test.step('Given the Power BI downloads folder is empty', () => extractor.clearDownloadsFolder());
+      await test.step('When the report is opened and all visuals have loaded', () => 
+        extractor.openReport());
 
-      await test.step('When the report is opened and all visuals have loaded', () => extractor.openReport());
-
-      await test.step('Then the number of report pages is extracted', () => extractor.countPages());
+      await test.step('Then the number of report pages is extracted', () => 
+        extractor.countPages());
 
       await test.step('Then the data behind every visual is downloaded for every page', () =>
         extractor.extractAllPages(),
